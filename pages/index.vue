@@ -53,7 +53,7 @@ const onCitySelected = async (city: City) => {
   }
 
   if (weatherData.value) {
-    weatherResponse.value = weatherData.value.data.list[0]
+    weatherResponse.value = {...weatherData.value.data, ...city}
   }
 }
 
