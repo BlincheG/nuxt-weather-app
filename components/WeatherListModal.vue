@@ -8,7 +8,7 @@
         <p>{{ weatherData.weather[0].main }}</p>
       </div>
       <div class="current-weather__temperature">
-        <p>{{ Math.floor(weatherData.main.temp - 273.15) }}</p>
+        <p>{{ formatTemperature(weatherData.main.temp) }}</p>
       </div>
     </div>
     <div class="details">
@@ -36,7 +36,15 @@ interface WeatherData {
   };
 }
 
-defineProps<{
+const props = defineProps<{
   weatherData: WeatherData;
+  units?: 'metric' | 'imperial';
 }>()
+
+const formatTemperature = (temp: number) => {
+  if (props.units === 'imperial') {
+    return `${Math.round(((temp - 273.15) * 9/5) + 32)}°F`
+  }
+  return `${Math.round(temp - 273.15)}°C`
+}
 </script>

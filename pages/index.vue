@@ -1,6 +1,16 @@
 <template>
   <div class="weather">
     <h1>Прогноз погоды</h1>
+    <div class="temperature-switch">
+      <button 
+        :class="{ active: units === 'metric' }" 
+        @click="units = 'metric'"
+      >°C</button>
+      <button 
+        :class="{ active: units === 'imperial' }" 
+        @click="units = 'imperial'"
+      >°F</button>
+    </div>
     <SearchInputAutoComplete 
       :cities="cities" 
       :inputWithDebounce="inputWithDebounce" 
@@ -12,6 +22,7 @@
     </div>
     <WeatherListModal
       :weatherData="weatherResponse" 
+      :units="units"
     />
   </div>
 </template>
@@ -26,6 +37,7 @@ interface City {
   };
 }
 
+const units = ref('metric')
 const { loading } = useWeatherApi()
 const cities = ref(['Москва', 'Питер'])
 const weatherResponse = ref(null)
