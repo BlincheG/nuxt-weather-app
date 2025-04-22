@@ -1,17 +1,25 @@
 <template>
-  <div>
+  <div class="relative">
     <input 
-      type="text" 
-      v-model="inputWithDebounce" 
+      type="text"
+      v-model="inputWithDebounce"
       placeholder="Введите название города"
+      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
     />
-    <ul v-if="cities?.length">
+    <ul 
+      v-if="cities?.length && showDropdown" 
+      class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+    >
       <li 
         v-for="(city, index) in cities" 
-        :key="index" 
+        :key="index"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
         @click="onClickCity(city)"
       >
-        {{ city.name }}
+        {{ city.name }}, {{ city.sys.country }}
+      </li>
+      <li v-if="cities?.length === 0">
+        Not found
       </li>
     </ul>
   </div>
@@ -28,7 +36,11 @@ defineProps<{
       lat: number;
       lon: number;
     };
+    sys: {
+      country: string;
+    };
   }>
+  showDropdown: boolean;
 }>()
 
 const emit = defineEmits<{

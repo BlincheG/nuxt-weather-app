@@ -1,29 +1,44 @@
 <template>
-  <div class="weather-inner" v-if="weatherData">
-    <div class="current-weather">
-      <div class="current-weather__city">
-        <h1>{{ weatherData.name }}, {{ weatherData.sys.country }}</h1>
-      </div>
-      <div class="current-weather__date">
-        <p>{{ formatDate(weatherData.current.dt) }}</p>
-      </div>
-      <div class="current-weather__description">
-        <p>{{ weatherData.weather[0].main }}</p>
-      </div>
-      <div class="current-weather__temperature">
-        <p>{{ formatTemperature(weatherData.main.temp) }}</p>
-      </div>
-      <div class="details__item pressure">
-        <div class="details__name">Max and Min temperature</div>
-        <div class="details__value">{{ formatTemperature(weatherData.main.temp_max) }}</div>
-        <div class="details__value">{{ formatTemperature(weatherData.main.temp_min) }}</div>
-      </div>
-    </div>
-    <div class="details">
-      <div class="details__row">
-        <div class="details__items pressure">
-          <div class="details__value">1000</div>
-          <div class="details__label">Давление</div>
+  <div v-if="weatherData" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
+      <button 
+        @click="$emit('close')" 
+        class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">
+          {{ weatherData.name }}, {{ weatherData.sys.country }}
+        </h2>
+        
+        <div class="text-gray-600 mb-4">
+          {{ formatDate(weatherData.current.dt) }}
+        </div>
+
+        <div class="text-5xl font-bold text-gray-900 mb-6">
+          <img 
+            :src="`http://openweathermap.org/img/w/${weatherData.weather[0].icon}.png`" 
+            :alt="weatherData.weather[0].description"
+            class="inline-block mr-2 h-8 w-8"
+          />
+          <span class="text-5xl font-bold text-gray-900 mb-6">
+            {{ formatTemperature(weatherData.main.temp) }}
+          </span>
+        </div>
+
+        <div class="flex justify-between text-gray-700 text-lg">
+          <div>
+            <div class="font-medium">Мин.</div>
+            <div>{{ formatTemperature(weatherData.main.temp_min) }}°</div>
+          </div>
+          <div>
+            <div class="font-medium">Макс.</div> 
+            <div>{{ formatTemperature(weatherData.main.temp_max) }}°</div>
+          </div>
         </div>
       </div>
     </div>
@@ -66,11 +81,9 @@ const formatDate = (date: number) => {
   const localDate = new Date(timestamp)
   
   const options: Intl.DateTimeFormatOptions = {
-    day: '2-digit',
-    month: '2-digit', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
   }
   
   return localDate.toLocaleString('ru-RU', options)
