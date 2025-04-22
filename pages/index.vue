@@ -25,11 +25,11 @@
 
         <SearchInputAutoComplete 
           :cities="cities" 
-          :inputWithDebounce="inputWithDebounce"
-          @city-selected="onCitySelected"
-          @update:modelValue="citySearch"
+          :input-with-debounce="inputWithDebounce"
           class="mb-6"
-          :showDropdown="showDropdown"
+          :show-dropdown="showDropdown"
+          @city-selected="onCitySelected"
+          @update:model-value="citySearch"
         />
 
         <div v-if="loading" class="text-center py-4">
@@ -38,7 +38,7 @@
         </div>
 
         <WeatherListModal
-          v-if="weatherResponse || (isCitySpecified && isCityInUrl)"
+          v-if="weatherResponse"
           :weather-data="weatherResponse"
           :units="units"
           @close="closeModal"
@@ -50,43 +50,64 @@
 
 <script setup lang="ts">
 import { ref, onMounted, useRoute } from '#imports'
-import type { SearchCity, WeatherData, WeatherResponse } from '~/types'
 
-const units = ref<'metric' | 'imperial'>('metric')
-const { loading } = useWeatherApi()
-const cities = ref<SearchCity[]>([])
-const weatherResponse = ref<WeatherData | null>(null)
-const inputWithDebounce = ref('')
-const showDropdown = ref(false)
-
-const route = useRoute()
-const isCityInUrl = computed(() => {
-  return useRoute().query.city
-})
-const isCitySpecified = computed(() => {
-  return useRoute().query.city
-})
-
-
-const onCitySelected = async (city: SearchCity) => {
-  const { error, weatherData, fetchWeatherByCoordinates } = useWeatherApi()
-  await fetchWeatherByCoordinates(city?.coord.lat, city?.coord.lon)
-
-  if (error.value) {
-    console.error('Ошибка при поиске города:', error.value)
-    return
+interface SearchCity {
+  id: number
+  name: string
+  country: string
+  coord: {
+    lat: number
+    lon: number
   }
-
-  if (weatherData.value) {
-    showDropdown.value = false
-    const router = useRouter()
-    router.push({ query: { city: city.name } })
-    weatherResponse.value = {...weatherData.value.data, ...city}
+  sys: {
+    country: string
   }
 }
 
+interface WeatherResponse { 
+  id: number
+  name: string
+  country: string
+  coord: {
+    lat: number
+    lon: number
+  }
+}
+const requestCache = new Map<string, SearchCity[]>()
+const units = ref<'metric' | 'imperial'>('metric')
+const weatherApi = useWeatherApi()
+const { loading } = weatherApi
+const cities = ref<SearchCity[]>([])
+const weatherResponse = ref<SearchCity | null>(null)
+const inputWithDebounce = ref<string>('')
+const showDropdown = ref<boolean>(false)
+
+const route = useRoute()
+
+const onCitySelected = async (city: SearchCity) => {
+  weatherResponse.value = city
+  showDropdown.value = false
+  const router = useRouter()
+  router.push({ query: { city: city.name, id: city.id } })
+}
+
 const citySearch = async(searchQuery: string) => {
-  const { error, weatherData, fetchWeatherByCity } = useWeatherApi()
+  if (searchQuery.length <= 3) {
+    cities.value = []
+    return
+  }
+  
+  const cacheKey = `search_${searchQuery}`
+  
+  if (requestCache.has(cacheKey)) {
+    const cachedData = requestCache.get(cacheKey)
+    if (cachedData) {
+      cities.value = cachedData
+    }
+    return
+  }
+
+  const { error, weatherData, fetchWeatherByCity } = weatherApi
   await fetchWeatherByCity(searchQuery)
   
   if (error.value) {
@@ -94,10 +115,11 @@ const citySearch = async(searchQuery: string) => {
     return
   }
 
-  const response = weatherData.value as unknown as WeatherResponse
+  const response = weatherData.value
   if (response?.data?.list) {
     showDropdown.value = true
     cities.value = response.data.list
+    requestCache.set(cacheKey, response.data.list)
   }
 }
 
@@ -105,19 +127,34 @@ const closeModal = () => {
   weatherResponse.value = null
   const router = useRouter()
   router.push({ query: {} })
+
+  if (cities.value.length > 0) {
+    showDropdown.value = true
+  }
 }
 
 onMounted(async () => {
   const cityParam = route.query.city as string
+  const cityId = route.query.id
 
-  if (cityParam) {
+  if (!cityParam || !cityId) return
+
+  try {
     await citySearch(cityParam)
+    
     if (cities.value.length > 0) {
-      onCitySelected(cities.value[0])
-    } else {
-      const router = useRouter()
-      router.push({ query: {} })
+      const matchingCity = cities.value.find(city => city.id.toString() === cityId)
+      if (matchingCity) {
+        onCitySelected(matchingCity)
+      } else {
+        const router = useRouter()
+        await router.push({ query: {} })
+      }
     }
+  } catch (error) {
+    console.error('Ошибка:', error)
+    const router = useRouter() 
+    await router.push({ query: {} })
   }
 })
 </script>

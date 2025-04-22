@@ -2,9 +2,9 @@
   <div class="relative">
     <input 
       type="text"
-      v-model="inputWithDebounce"
-      placeholder="Введите название города"
       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      placeholder="Введите название города"
+      v-model="inputWithDebounce"
     />
     <ul 
       v-if="cities?.length && showDropdown" 
@@ -47,8 +47,11 @@ const emit = defineEmits<{
   (e: 'update:modelValue' | 'citySelected', value: string): void,
 }>()
 
-const input = ref('');
-const timeout = ref(0);
+const route = useRoute();
+
+const input = ref<string>(route.query.city ?? '');
+const timeout = ref<number>(0);
+
 
 const onClickCity = (city: any) => {
   input.value = city?.name

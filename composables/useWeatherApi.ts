@@ -8,7 +8,7 @@ interface WeatherData {
 
 export function useWeatherApi() {
   const config = useRuntimeConfig()
-  const loading = ref(false)
+  const loading = ref<boolean>(false)
   const error = ref<string | null>(null)
   const weatherData = ref<WeatherData | null>(null)
 
@@ -18,16 +18,7 @@ export function useWeatherApi() {
       apiKey: config.public.WEATHER_API_KEY,
       units: 'metric'
     }
-  })
-
-  const apiWithAppId = axios.create({
-    baseURL: config.public.WEATHER_API_BASE_URL,
-    params: {
-      appId: config.public.WEATHER_API_KEY,
-      units: 'metric'
-    }
-  })
-  
+  })  
 
   const fetchWeatherByCity = async (city: string) => {
     loading.value = true
@@ -38,18 +29,8 @@ export function useWeatherApi() {
       weatherData.value = data
     } catch (e) {
       error.value = 'Что-то пошло не так при получении погоды'
-    }
-  }
-
-  const fetchWeatherByCoordinates = async (lat: number, lon: number) => {
-    loading.value = true
-    error.value = null
-    
-    try {
-      const data = await apiWithAppId.get(`onecall`, { params: {lat: lat, lon: lon, exclude: 'hourly,daily' } })
-      weatherData.value = data
-    } catch (e) {
-      error.value = 'Что-то пошло не так при получении погоды'
+    } finally {
+      loading.value = false
     }
   }
 
@@ -57,7 +38,6 @@ export function useWeatherApi() {
     loading,
     error,
     weatherData,
-    fetchWeatherByCity,
-    fetchWeatherByCoordinates
+    fetchWeatherByCity
   }
 }
