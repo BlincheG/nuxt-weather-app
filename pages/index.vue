@@ -26,7 +26,7 @@
         <SearchInputAutoComplete 
           :cities="cities" 
           :inputWithDebounce="inputWithDebounce"
-          @citySelected="onCitySelected"
+          @city-selected="onCitySelected"
           @update:modelValue="citySearch"
           class="mb-6"
           :showDropdown="showDropdown"
@@ -38,8 +38,8 @@
         </div>
 
         <WeatherListModal
-          v-if="weatherResponse"
-          :weatherData="weatherResponse" 
+          v-if="weatherResponse || (isCitySpecified && isCityInUrl)"
+          :weather-data="weatherResponse"
           :units="units"
           @close="closeModal"
         />
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from '#imports'
+import { ref, onMounted, useRoute } from '#imports'
 import type { SearchCity, WeatherData, WeatherResponse } from '~/types'
 
 const units = ref<'metric' | 'imperial'>('metric')
@@ -58,6 +58,15 @@ const cities = ref<SearchCity[]>([])
 const weatherResponse = ref<WeatherData | null>(null)
 const inputWithDebounce = ref('')
 const showDropdown = ref(false)
+
+const route = useRoute()
+const isCityInUrl = computed(() => {
+  return useRoute().query.city
+})
+const isCitySpecified = computed(() => {
+  return useRoute().query.city
+})
+
 
 const onCitySelected = async (city: SearchCity) => {
   const { error, weatherData, fetchWeatherByCoordinates } = useWeatherApi()
@@ -70,6 +79,8 @@ const onCitySelected = async (city: SearchCity) => {
 
   if (weatherData.value) {
     showDropdown.value = false
+    const router = useRouter()
+    router.push({ query: { city: city.name } })
     weatherResponse.value = {...weatherData.value.data, ...city}
   }
 }
@@ -92,5 +103,21 @@ const citySearch = async(searchQuery: string) => {
 
 const closeModal = () => {
   weatherResponse.value = null
+  const router = useRouter()
+  router.push({ query: {} })
 }
+
+onMounted(async () => {
+  const cityParam = route.query.city as string
+
+  if (cityParam) {
+    await citySearch(cityParam)
+    if (cities.value.length > 0) {
+      onCitySelected(cities.value[0])
+    } else {
+      const router = useRouter()
+      router.push({ query: {} })
+    }
+  }
+})
 </script>
