@@ -2,5 +2,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@nuxt/eslint']
+  modules: ['@nuxt/eslint'],
+  runtimeConfig: {
+    public: {
+      WEATHER_API_BASE_URL: process.env.WEATHER_API_BASE_URL,
+      WEATHER_API_KEY: process.env.WEATHER_API_KEY
+    }
+  }
 })

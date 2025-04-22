@@ -1,14 +1,14 @@
 <template>
-  <div class="weather-inner">
+  <div class="weather-inner" v-if="weatherData">
     <div class="current-weather">
       <div class="current-weather__city">
-        <h1>Москва</h1>
+        <h1>{{ weatherData.name }}, {{ weatherData.sys.country }}</h1>
       </div>
       <div class="current-weather__description">
-        <p>Сейчас 20 градусов</p>
+        <p>{{ weatherData.weather[0].main }}</p>
       </div>
       <div class="current-weather__temperature">
-        <p>20 градусов</p>
+        <p>{{ Math.floor(weatherData.main.temp - 273.15) }}</p>
       </div>
     </div>
     <div class="details">
@@ -23,5 +23,20 @@
 </template>
 
 <script setup lang="ts">
+interface WeatherData {
+  name: string;
+  sys: {
+    country: string;
+  };
+  weather: Array<{
+    main: string;
+  }>;
+  main: {
+    temp: number;
+  };
+}
 
+defineProps<{
+  weatherData: WeatherData;
+}>()
 </script>

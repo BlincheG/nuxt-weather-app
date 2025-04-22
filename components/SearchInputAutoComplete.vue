@@ -6,8 +6,12 @@
       placeholder="Введите название города"
     />
     <ul v-if="cities?.length">
-      <li v-for="(city, index) in cities" :key="index" @click="onClickCity(city)">
-        {{ city }}
+      <li 
+        v-for="(city, index) in cities" 
+        :key="index" 
+        @click="onClickCity(city)"
+      >
+        {{ city.name }}
       </li>
     </ul>
   </div>
@@ -17,7 +21,14 @@
 import { ref } from 'vue';
 
 defineProps<{
-  cities?: string[]
+  cities?: Array<{
+    name: string;
+    id: number;
+    coord: {
+      lat: number;
+      lon: number;
+    };
+  }>
 }>()
 
 const emit = defineEmits<{
@@ -27,8 +38,8 @@ const emit = defineEmits<{
 const input = ref('');
 const timeout = ref(0);
 
-const onClickCity = (city: string) => {
-  input.value = city
+const onClickCity = (city: any) => {
+  input.value = city?.name
   emit('citySelected', city)
 }
 
