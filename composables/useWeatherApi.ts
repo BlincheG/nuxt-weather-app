@@ -2,8 +2,17 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 interface WeatherData {
-  temperature: number
-  description: string
+  list: Array<{
+    id: number
+    name: string
+    coord: {
+      lat: number
+      lon: number
+    }
+    sys: {
+      country: string
+    }
+  }>
 }
 
 export function useWeatherApi() {
@@ -25,10 +34,10 @@ export function useWeatherApi() {
     error.value = null
     
     try {
-      const data = await apiWithApiKey.get(`find`, { params: {q: city, type: 'like'} })
+      const { data } = await apiWithApiKey.get(`find`, { params: {q: city, type: 'like'} })
       weatherData.value = data
     } catch (e) {
-      error.value = 'Что-то пошло не так при получении погоды'
+      error.value = e instanceof Error ? e.message : 'Что-то пошло не так при получении погоды'
     } finally {
       loading.value = false
     }

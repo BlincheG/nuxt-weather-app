@@ -46,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { defineProps, defineEmits } from 'vue'
+
 interface WeatherData {
   name: string;
   dt: number;
@@ -54,9 +56,13 @@ interface WeatherData {
   };
   weather: Array<{
     main: string;
+    description: string;
+    icon: string;
   }>;
   main: {
     temp: number;
+    temp_min: number;
+    temp_max: number;
   };
   timezone_offset: number;
 }

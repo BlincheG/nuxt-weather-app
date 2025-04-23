@@ -25,11 +25,10 @@
 
         <SearchInputAutoComplete 
           :cities="cities" 
-          :input-with-debounce="inputWithDebounce"
           class="mb-6"
           :show-dropdown="showDropdown"
           @city-selected="onCitySelected"
-          @update:model-value="citySearch"
+          @searchCityInput="citySearch"
         />
 
         <div v-if="loading" class="text-center py-4">
@@ -51,10 +50,9 @@
 <script setup lang="ts">
 import { ref, onMounted, useRoute } from '#imports'
 
-interface SearchCity {
+export interface SearchCityItem {
   id: number
   name: string
-  country: string
   coord: {
     lat: number
     lon: number
@@ -64,28 +62,40 @@ interface SearchCity {
   }
 }
 
-interface WeatherResponse { 
-  id: number
-  name: string
-  country: string
-  coord: {
-    lat: number
-    lon: number
+export interface SearchCity extends SearchCityItem {
+  dt: number
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+  main: {
+    temp: number
+    temp_min: number
+    temp_max: number
+    feels_like: number
+    humidity: number
   }
+  timezone_offset: number
 }
-const requestCache = new Map<string, SearchCity[]>()
+
+interface WeatherApiResponse {
+  list: SearchCity[]
+}
+
+const requestCache = new Map<string, SearchCityItem[]>()
 const units = ref<'metric' | 'imperial'>('metric')
-const weatherApi = useWeatherApi()
-const { loading } = weatherApi
-const cities = ref<SearchCity[]>([])
+const cities = ref<SearchCityItem[]>([])
 const weatherResponse = ref<SearchCity | null>(null)
-const inputWithDebounce = ref<string>('')
 const showDropdown = ref<boolean>(false)
+
+const weatherApi = useWeatherApi()
+const { loading, weatherData } = weatherApi
 
 const route = useRoute()
 
-const onCitySelected = async (city: SearchCity) => {
-  weatherResponse.value = city
+const onCitySelected = async (city: SearchCityItem) => {
+  weatherResponse.value = city as SearchCity
   showDropdown.value = false
   const router = useRouter()
   router.push({ query: { city: city.name, id: city.id } })
@@ -102,12 +112,12 @@ const citySearch = async(searchQuery: string) => {
   if (requestCache.has(cacheKey)) {
     const cachedData = requestCache.get(cacheKey)
     if (cachedData) {
-      cities.value = cachedData
+      cities.value = cachedData as SearchCityItem[]
     }
     return
   }
 
-  const { error, weatherData, fetchWeatherByCity } = weatherApi
+  const { error, fetchWeatherByCity } = weatherApi
   await fetchWeatherByCity(searchQuery)
   
   if (error.value) {
@@ -115,11 +125,12 @@ const citySearch = async(searchQuery: string) => {
     return
   }
 
-  const response = weatherData.value
-  if (response?.data?.list) {
+  const response = weatherData.value as WeatherApiResponse
+  console.log(response)
+  if (response?.list) {
     showDropdown.value = true
-    cities.value = response.data.list
-    requestCache.set(cacheKey, response.data.list)
+    cities.value = response.list
+    requestCache.set(cacheKey, response.list)
   }
 }
 
@@ -143,9 +154,9 @@ onMounted(async () => {
     await citySearch(cityParam)
     
     if (cities.value.length > 0) {
-      const matchingCity = cities.value.find(city => city.id.toString() === cityId)
+      const matchingCity = cities.value.find((c: SearchCityItem) => c.id.toString() === cityId)
       if (matchingCity) {
-        onCitySelected(matchingCity)
+        onCitySelected(cities.value.find((c: SearchCityItem) => c.id === matchingCity.id) as SearchCityItem)
       } else {
         const router = useRouter()
         await router.push({ query: {} })

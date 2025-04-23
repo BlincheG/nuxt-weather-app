@@ -1,75 +1,41 @@
-# Nuxt Minimal Starter
+# Weather App
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+This is a simple weather app built with **Vue.js & Nuxt 3** as part of a test task for the company **SunFinance**.   
+The app helps you find the weather in different cities.
+
+## Features
+
+- Search cities by name  
+- View weather details for the selected city  
+- Switch between Celsius and Fahrenheit  
+- Loading spinner while fetching data  
+- Error messages if something goes wrong  
+- City search cache to make it faster
+
+## Components
+
+The app has two main parts:
+
+1. **Search Component**  
+   - You can type a city name  
+   - It shows a list of matching cities  
+
+2. **Weather Component**  
+   - Shows temperature and weather info for the selected city  
 
 ## Setup
 
-Make sure to install dependencies:
+Before running the app, create a `.env` file in the root folder.  
+You can use `.env.example` as a guide.
+
+Then install dependencies and run the development server:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
 npm run dev
 
-# pnpm
-pnpm dev
+**Built With**
 
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- Vue 3
+- TypeScript
+- OpenWeatherMap API

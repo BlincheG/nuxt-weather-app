@@ -7,7 +7,7 @@
       v-model="inputWithDebounce"
     />
     <ul 
-      v-if="cities?.length && showDropdown" 
+      v-if="showDropdown" 
       class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
     >
       <li 
@@ -18,7 +18,10 @@
       >
         {{ city.name }}, {{ city.sys.country }}
       </li>
-      <li v-if="cities?.length === 0">
+      <li 
+        v-if="cities?.length === 0"
+        class="px-4 py-2 hover:bg-gray-100"
+      >
         Not found
       </li>
     </ul>
@@ -26,34 +29,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from '#imports'
+import type { SearchCityItem } from '../pages/index.vue';
 
 defineProps<{
-  cities?: Array<{
-    name: string;
-    id: number;
-    coord: {
-      lat: number;
-      lon: number;
-    };
-    sys: {
-      country: string;
-    };
-  }>
+  cities?: SearchCityItem[]
   showDropdown: boolean;
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue' | 'citySelected', value: string): void,
+  (e: 'searchCityInput', value: string): void,
+  (e: 'citySelected', value: SearchCityItem): void
 }>()
 
 const route = useRoute();
 
-const input = ref<string>(route.query.city ?? '');
-const timeout = ref<number>(0);
+const input = ref<string>(route.query.city as string ?? '');
+const timeout = ref<ReturnType<typeof setTimeout>>();
 
 
-const onClickCity = (city: any) => {
+const onClickCity = (city: SearchCityItem) => {
   input.value = city?.name
   emit('citySelected', city)
 }
@@ -68,10 +63,8 @@ const inputWithDebounce = computed({
     }
     timeout.value = setTimeout(() => {
       input.value = value
-      emit('update:modelValue', value)
+      emit('searchCityInput', value)
     }, 300)
   }
 })
-
-
 </script>
